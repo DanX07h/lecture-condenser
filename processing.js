@@ -1,7 +1,7 @@
 import mammoth from 'mammoth';
 import pdf from 'pdf-parse/lib/pdf-parse.js';
 import JSZip from 'jszip';
-export const audioExtensions = new Set(['mp3','mp4','m4a','wav','webm','mpeg','mpga']);
+export const audioExtensions = new Set(['mp3','mp4','m4a','wav','webm','mpeg','mpga','mov','mkv']);
 export function extension(name) { return name.split('.').pop().toLowerCase(); }
 export async function extract(file) {
   const ext = extension(file.originalname);
