@@ -15,8 +15,26 @@ export async function extract(file) {
   }
   throw new Error('Unsupported document type. Use PDF, DOCX, PPTX or TXT.');
 }
-export async function openai(path, body, isForm=false) {
-  const response = await fetch(`https://api.openai.com/v1/${path}`, {method:'POST',headers:{Authorization:`Bearer ${process.env.OPENAI_API_KEY}`,...(!isForm?{'Content-Type':'application/json'}:{})},body:isForm?body:JSON.stringify(body),signal:AbortSignal.timeout(180000)});
-  if (!response.ok) throw new Error(`AI service request failed (${response.status}). Check the server API key, quota and file format.`);
+export function aiConfig(env=process.env) {
+  const provider = env.AI_PROVIDER || (env.GROQ_API_KEY ? 'groq' : 'openai');
+  if (!['groq','openai'].includes(provider)) throw new Error('AI_PROVIDER must be groq or openai.');
+  const groq = provider === 'groq';
+  return {provider, key:groq ? env.GROQ_API_KEY : env.OPENAI_API_KEY,
+    base:groq ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1',
+    transcriptionModel:groq ? 'whisper-large-v3-turbo' : 'whisper-1',
+    notesModel:env.NOTES_MODEL || (groq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini')};
+}
+export async function aiRequest(path, body, isForm=false, config=aiConfig()) {
+  const response = await fetch(`${config.base}/${path}`, {method:'POST',headers:{Authorization:`Bearer ${config.key}`,...(!isForm?{'Content-Type':'application/json'}:{})},body:isForm?body:JSON.stringify(body),signal:AbortSignal.timeout(180000)});
+  if (!response.ok) {
+    let code;
+    try { const data=await response.json(); code=data.error?.code; } catch {}
+    const reason = response.status === 429
+      ? (code === 'insufficient_quota' ? 'API quota exhausted. Check provider billing and usage limits.' : 'Rate or quota limit reached. Try a shorter recording, wait before retrying, and check provider usage limits. Free tiers have limited capacity.')
+      : response.status === 401 ? 'API key rejected. Check your private .env file and restart the server.'
+      : response.status === 413 ? 'Material exceeds the provider request limit. Try a shorter recording or document.'
+      : 'Check the provider model availability and uploaded file format.';
+    throw new Error(`${config.provider} request failed (${response.status}). ${reason}`);
+  }
   return response.json();
 }
