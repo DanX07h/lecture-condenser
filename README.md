@@ -28,3 +28,7 @@ This is a local prototype, not a production deployment. It has no accounts, auth
 3. Split long recordings into overlapping chunks, preserve timestamps, then merge topic notes with a whole-lecture coverage pass.
 4. Add source-linked citations, OCR and slide image understanding.
 5. Add deletion/retention controls, quotas and billing before opening the service to others.
+
+## Diagnosing provider errors
+
+Run `npm run check:ai` to check whether the configured transcription and notes models are listed for your account. This reads the provider model listing without uploading files or printing the key. A listed model still may have rate limits or require account permissions when invoked. The app reports the failing stage, model, HTTP status and a sanitized provider error code. You can set `TRANSCRIPTION_MODEL` and `NOTES_MODEL` in your private `.env` to supported models shown in your provider console, then restart the app. Never share your `.env` or API key.

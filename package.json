@@ -1,1 +1,22 @@
-{"name":"lecture-condenser","version":"0.1.0","private":true,"type":"module","scripts":{"start":"node --env-file-if-exists=.env server.js","dev":"node --watch --env-file-if-exists=.env server.js","test":"node --test"},"engines":{"node":">=22"},"dependencies":{"express":"^5.1.0","multer":"^2.0.2","mammoth":"^1.10.0","pdf-parse":"1.1.1","jszip":"^3.10.1"}}
+{
+  "name": "lecture-condenser",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js",
+    "dev": "node --watch --env-file-if-exists=.env server.js",
+    "test": "node --test",
+    "check:ai": "node --env-file-if-exists=.env check-ai.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "multer": "^2.0.2",
+    "mammoth": "^1.10.0",
+    "pdf-parse": "1.1.1",
+    "jszip": "^3.10.1"
+  }
+}

@@ -21,7 +21,7 @@ export function aiConfig(env=process.env) {
   const groq = provider === 'groq';
   return {provider, key:groq ? env.GROQ_API_KEY : env.OPENAI_API_KEY,
     base:groq ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1',
-    transcriptionModel:groq ? 'whisper-large-v3-turbo' : 'whisper-1',
+    transcriptionModel:env.TRANSCRIPTION_MODEL || (groq ? 'whisper-large-v3-turbo' : 'whisper-1'),
     notesModel:env.NOTES_MODEL || (groq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini')};
 }
 export async function aiRequest(path, body, isForm=false, config=aiConfig()) {
@@ -34,7 +34,13 @@ export async function aiRequest(path, body, isForm=false, config=aiConfig()) {
       : response.status === 401 ? 'API key rejected. Check your private .env file and restart the server.'
       : response.status === 413 ? 'Material exceeds the provider request limit. Try a shorter recording or document.'
       : 'Check the provider model availability and uploaded file format.';
-    throw new Error(`${config.provider} request failed (${response.status}). ${reason}`);
+    const model = isForm ? body.get('model') : body.model;
+    const stage = path === 'audio/transcriptions' ? 'transcription' : 'note generation';
+    const safeCode = typeof code === 'string' && /^[a-zA-Z0-9_-]{1,80}$/.test(code) ? ` Code: ${code}.` : '';
+    const details = response.status === 404
+      ? `The requested model may be unavailable for this account. Run npm run check:ai to check model access. ${reason}`
+      : reason;
+    throw new Error(`${config.provider} ${stage} failed (${response.status}), model ${String(model).replace(/[^a-zA-Z0-9/_.-]/g, '').slice(0,100)}.${safeCode} ${details}`);
   }
   return response.json();
 }

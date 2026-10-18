@@ -22,3 +22,13 @@ test('sends transcription form unchanged and explains rate limits without leakin
  await assert.rejects(()=>aiRequest('chat/completions',{},false,aiConfig({GROQ_API_KEY:'test-placeholder'})),error=>error.message.includes('Rate or quota limit')&&!error.message.includes('Sensitive'));
  } finally {globalThis.fetch=original;}
 });
+test('404 errors identify stage and model without echoing provider messages',async()=>{
+ const original=globalThis.fetch;
+ try {
+ globalThis.fetch=async()=>({ok:false,status:404,json:async()=>({error:{code:'model_not_found',message:'private content'}})});
+ await assert.rejects(()=>aiRequest('chat/completions',{model:'unavailable-model'},false,aiConfig({GROQ_API_KEY:'test-placeholder'})),error=>error.message.includes('note generation failed (404)')&&error.message.includes('unavailable-model')&&error.message.includes('model_not_found')&&!error.message.includes('private content'));
+ const form=new FormData();form.append('model','whisper-large-v3');
+ await assert.rejects(()=>aiRequest('audio/transcriptions',form,true,aiConfig({GROQ_API_KEY:'test-placeholder'})),/transcription failed \(404\), model whisper-large-v3/);
+ assert.equal(aiConfig({GROQ_API_KEY:'test-placeholder',TRANSCRIPTION_MODEL:'whisper-large-v3'}).transcriptionModel,'whisper-large-v3');
+ } finally {globalThis.fetch=original;}
+});
