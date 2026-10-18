@@ -22,3 +22,6 @@
 #notes pre{overflow-x:auto;background:#edf0e9;padding:14px;border-radius:8px}
 #notes pre code{padding:0}
 #notes hr{border:0;border-top:1px solid #dfe6d9;margin:24px 0}
+.slides-divider{height:1px;background:#dfe5dc;margin:30px 0}
+#slides-form .drop{margin:18px 0 12px}
+#deck-selection{overflow-wrap:anywhere}

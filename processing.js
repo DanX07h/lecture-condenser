@@ -11,7 +11,11 @@ export async function extract(file) {
   if (ext === 'pptx') {
     const zip = await JSZip.loadAsync(file.buffer);
     const slides = Object.keys(zip.files).filter(p=>/^ppt\/slides\/slide\d+\.xml$/.test(p)).sort((a,b)=>Number(a.match(/slide(\d+)/)[1])-Number(b.match(/slide(\d+)/)[1]));
-    return (await Promise.all(slides.map(async(p,i)=>`Slide ${i+1}\n`+(await zip.file(p).async('string')).match(/<a:t>[^]*?<\/a:t>/g)?.map(t=>t.replace(/<[^>]+>/g,'').replaceAll('&amp;','&').replaceAll('&lt;','<').replaceAll('&gt;','>')).join('\n')))).join('\n\n');
+    return (await Promise.all(slides.map(async p=>{
+      const xml=await zip.file(p).async('string');
+      const text=(xml.match(/<a:t(?:\s[^>]*)?>[^]*?<\/a:t>/g) || []).map(t=>t.replace(/<[^>]+>/g,'').replaceAll('&lt;','<').replaceAll('&gt;','>').replaceAll('&quot;','"').replaceAll('&apos;',"'").replaceAll('&amp;','&')).join('\n').trim();
+      return text ? `Slide ${Number(p.match(/slide(\d+)/)[1])}\n${text}` : '';
+    }))).filter(Boolean).join('\n\n');
   }
   throw new Error('Unsupported document type. Use PDF, DOCX, PPTX or TXT.');
 }

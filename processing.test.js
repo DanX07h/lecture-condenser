@@ -32,3 +32,9 @@ test('404 errors identify stage and model without echoing provider messages',asy
  assert.equal(aiConfig({GROQ_API_KEY:'test-placeholder',TRANSCRIPTION_MODEL:'whisper-large-v3'}).transcriptionModel,'whisper-large-v3');
  } finally {globalThis.fetch=original;}
 });
+test('PowerPoint extraction preserves actual slide numbers and rejects textless slides',async()=>{
+ const zip=new JSZip();zip.file('ppt/slides/slide3.xml','<a:t>Key definition</a:t>');zip.file('ppt/slides/slide10.xml','<a:t>Important example</a:t>');zip.file('ppt/slides/slide11.xml','<p:pic/>');
+ const text=await extract({originalname:'lecture.pptx',buffer:await zip.generateAsync({type:'nodebuffer'})});
+ assert.match(text,/Slide 3\nKey definition/);assert.match(text,/Slide 10\nImportant example/);assert.ok(!text.includes('undefined'));assert.ok(!text.includes('Slide 11'));
+ const empty=new JSZip();empty.file('ppt/slides/slide1.xml','<p:pic/>');assert.equal(await extract({originalname:'images.pptx',buffer:await empty.generateAsync({type:'nodebuffer'})}),'');
+});
