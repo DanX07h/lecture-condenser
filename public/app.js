@@ -1,9 +1,11 @@
+import {setupDashboard} from './dashboard.js';
 import {setupLibrary} from './library.js';
 import {renderNotes} from './notes.js';
 const form=document.querySelector('#form'), status=document.querySelector('#status'), output=document.querySelector('#notes'), download=document.querySelector('#download'), generate=document.querySelector('#generate');
+const dashboard=setupDashboard();
 let notes='';
 let libraryUI;
-function show(text){notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;libraryUI?.newNotes(text);}
+function show(text){dashboard.navigate('reader');notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;libraryUI?.newNotes(text);}
 document.querySelector('#sample').onclick=()=>{status.textContent='Sample notes — illustrative content, not generated from your files.';show("# Introduction to memory\n\n## Overview\nMemory involves **encoding**, **storing** and **retrieving** information. Effective study supports all three processes.\n\n## Key takeaways\n> - **Working memory is limited:** break complex material into meaningful units.\n> - **Space your practice** across multiple study sessions.\n> - **Test yourself:** retrieval practice helps strengthen learning.\n\n## Main topics\n### Working memory\nWorking memory holds information temporarily while you use it. Group related ideas to reduce the load of a complex task.\n\n### Retention and practice\n- **Spaced practice:** revisit material across separate sessions.\n- **Active retrieval:** try recalling an idea before checking your notes.\n\n## Key terms\n- **Encoding:** converting information into a form that can be stored.\n- **Retrieval:** accessing previously learned information.\n\n## Examples\nAfter a lecture, close your notes and explain **three main ideas** in your own words. Revisit those ideas in a later study session.\n\n## Review questions\n1. What are the three main memory processes?\n2. How could you combine spacing and retrieval in your study routine?\n\n## Uncertainties\nThis is a handcrafted interface sample, with no uploaded source.");};
 const slidesForm=document.querySelector('#slides-form');
 const consolidate=document.querySelector('#consolidate');
@@ -15,6 +17,7 @@ decks.onchange=()=>{
     : 'Select one or more PPTX or PDF decks, up to five files.';
 };
 async function createNotes(selectedForm,slidesMode=false) {
+  dashboard.navigate('reader');
   const data=new FormData(selectedForm);
   const files=[...data.values()].filter(file=>file.size);
   if(!files.length){status.textContent='Please choose at least one file.';return;}

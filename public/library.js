@@ -8,6 +8,7 @@ export function setupLibrary({onOpen,getCurrent}) {
   function button(text,handler,selected=false){const el=document.createElement('button');el.type='button';el.textContent=text;el.className='plain'+(selected?' selected':'');el.onclick=handler;return el;}
   function render(){
     const data=library.read();
+    for(const [id,count] of [['stat-notes',data.notes.length],['stat-folders',data.folders.length],['stat-cards',data.flashcards.length]])if($(id))$(id).textContent=String(count);
     if(!['all','unfiled'].includes(active)&&!data.folders.some(f=>f.id===active))active='all';
     const folders=$('folder-list');folders.replaceChildren();
     for(const [id,name] of [['all','All notes'],['unfiled','Unfiled'],...data.folders.map(f=>[f.id,f.name])]) {
@@ -17,6 +18,10 @@ export function setupLibrary({onOpen,getCurrent}) {
     for(const id of ['save-folder','manual-folder','flashcard-folder']){
       const select=$(id),previous=select.value;select.replaceChildren(option('','Unfiled'),...data.folders.map(f=>option(f.id,f.name)));
       select.value=data.folders.some(f=>f.id===previous)?previous:'';
+    }
+    if($('review-folder')){
+      $('review-folder').replaceChildren(option('all','All folders'),option('unfiled','Unfiled'),...data.folders.map(f=>option(f.id,f.name)));
+      $('review-folder').value=active;
     }
     const selected=data.folders.find(f=>f.id===active);
     $('folder-title').textContent=selected?selected.name:active==='unfiled'?'Unfiled':'All notes';
@@ -61,20 +66,22 @@ export function setupLibrary({onOpen,getCurrent}) {
     $('flashcard-question').focus();
   }
   $('create-flashcard').onclick=()=>openCard();
+  for(const action of document.querySelectorAll('[data-new-card]'))action.onclick=()=>openCard();
+  if($('review-folder'))$('review-folder').onchange=()=>{active=$('review-folder').value;attempt(render);};
   $('close-flashcard').onclick=()=>$('flashcard-editor').close();
   $('flashcard-form').onsubmit=event=>{
     event.preventDefault();
     try {
       library.saveFlashcard({id:editingCard,question:$('flashcard-question').value,answer:$('flashcard-answer').value,folderId:$('flashcard-folder').value||null});
-      render();$('flashcard-editor').close();tell('Flashcard saved. Find it in your topic folder under Flashcards.');
+      render();$('flashcard-editor').close();tell('Flashcard saved. Open Flashcards to review it.');
     } catch(error){$('flashcard-feedback').textContent=error.name==='QuotaExceededError'?'Browser storage is full. The flashcard was not saved.':error.message;}
   };
   attempt(()=>{library=new NoteLibrary(window.localStorage);render();});
   $('folder-form').onsubmit=event=>{event.preventDefault();attempt(()=>{active=library.createFolder($('folder-name').value);$('folder-name').value='';render();$('save-folder').value=active;$('manual-folder').value=active;$('flashcard-folder').value=active;tell('Folder created.');});};
-  $('save-form').onsubmit=event=>{event.preventDefault();attempt(()=>{const content=getCurrent();if(!content)throw Error('Generate or open notes first.');currentId=library.saveNote({id:currentId,title:$('save-title').value,content,folderId:$('save-folder').value||null});render();$('save-note').textContent='Update saved note';tell('Notes saved in this browser.');$('save-hint').textContent='Saved successfully. Find these notes in Your library below.';});};
+  $('save-form').onsubmit=event=>{event.preventDefault();attempt(()=>{const content=getCurrent();if(!content)throw Error('Generate or open notes first.');currentId=library.saveNote({id:currentId,title:$('save-title').value,content,folderId:$('save-folder').value||null});render();$('save-note').textContent='Update saved note';tell('Notes saved in this browser.');$('save-hint').textContent='Saved successfully. Find these notes in Folders & notes.';});};
   $('manual-form').onsubmit=event=>{event.preventDefault();attempt(()=>{library.saveNote({title:$('manual-title').value,content:$('manual-content').value,folderId:$('manual-folder').value||null});$('manual-title').value='';$('manual-content').value='';render();tell('Your note was saved.');});};
   $('rename-folder').onclick=()=>{attempt(()=>{const folder=library.read().folders.find(f=>f.id===active);const name=window.prompt('Folder name',folder.name);if(name===null)return;library.renameFolder(active,name);render();tell('Folder renamed.');});};
   $('delete-folder').onclick=()=>{if(!window.confirm('Delete this folder? Its notes and flashcards will be kept in Unfiled.'))return;attempt(()=>{library.deleteFolder(active);active='unfiled';render();tell('Folder deleted. Notes and flashcards kept in Unfiled.');});};
   window.addEventListener('storage',event=>{if(event.key===LIBRARY_KEY||event.key===null)attempt(render);});
-  return {newNotes(text){currentId=null;$('save-note').disabled=false;$('save-title').disabled=false;$('save-hint').textContent='Choose a topic folder, then save. Your notes will appear in Your library below.';$('save-title').value=(text.match(/^#\s+(.+)$/m)?.[1]||'Untitled notes').slice(0,160);$('save-note').textContent='Save notes to folder';attempt(render);}};
+  return {newNotes(text){currentId=null;$('save-note').disabled=false;$('save-title').disabled=false;$('save-hint').textContent='Choose a topic folder, then save. Your notes will appear in Folders & notes.';$('save-title').value=(text.match(/^#\s+(.+)$/m)?.[1]||'Untitled notes').slice(0,160);$('save-note').textContent='Save notes to folder';attempt(render);}};
 }

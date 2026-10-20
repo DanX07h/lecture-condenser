@@ -1,0 +1,21 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {JSDOM} from 'jsdom';
+import {setupDashboard} from './public/dashboard.js';
+test('dashboard navigation shows one tool, preserves drafts and responds to history changes',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});
+ globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const dashboard=setupDashboard();
+ const visible=()=>[...document.querySelectorAll('[data-panel]')].filter(p=>!p.hidden).map(p=>p.dataset.panel);
+ assert.deepEqual(visible(),['dashboard']);assert.equal(document.querySelector('[aria-current=page]').dataset.nav,'dashboard');
+ dashboard.navigate('library');document.getElementById('folder-name').value='My topic';
+ dashboard.navigate('lectures');assert.deepEqual(visible(),['lectures']);assert.equal(document.getElementById('folder-name').value,'My topic');
+ document.getElementById('notes').textContent='Unsaved lecture notes';
+ dashboard.navigate('reader');assert.equal(document.getElementById('create-flashcard').hidden,false);
+ dashboard.navigate('flashcards');assert.equal(document.getElementById('create-flashcard').hidden,true);assert.equal(document.getElementById('notes').textContent,'Unsaved lecture notes');
+ window.location.hash='slides';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['slides']);assert.match(document.title,/Slide decks/);
+ window.location.hash='invalid';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['dashboard']);
+ for(const target of ['form','slides-form','save-form','folder-form','flashcard-form'])assert.equal(document.querySelectorAll('#'+target).length,1);
+ dom.window.close();
+});
