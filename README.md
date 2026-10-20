@@ -8,7 +8,7 @@ Requires Node.js 22 or newer. Automatic media compression also requires FFmpeg. 
 
 ```sh
 npm ci --cache /tmp/lecture-npm-cache
-cp .env.example .env
+cp -n .env.example .env
 # Set AI_PROVIDER=groq and add your replacement GROQ_API_KEY to .env using a local editor.
 npm run dev
 ```
@@ -17,23 +17,34 @@ Open port 3000 in your local browser. Sample notes work without an API key. Groq
 
 ## Current scope
 
-Accepts audio (MP3, M4A, WAV, MP4, WEBM, MPEG, MPGA, MOV, MKV), text-based PDF, DOCX, PPTX and TXT. Upload a lecture/document and optionally one supporting document. Notes can be downloaded as Markdown. Recordings can be up to 500 MB, and documents up to 24 MB. Videos and audio larger than 24 MB are converted by FFmpeg to 24 kbps mono MP3 at 16 kHz. This discards video and favours speech over music; slides should be uploaded separately. Already-small audio is sent unchanged. Compressed audio must fit within 24 MB, otherwise the app asks for shorter recordings without truncating the source. Combined extracted text is limited to 180,000 characters. Uploads and compressed audio use a unique temporary directory deleted after the request, including normal error responses. A hard process kill can leave temporary files; use OS temporary-file cleanup if needed. Source content is sent to the selected provider; review provider retention policies before using sensitive material.
+Accepts audio/video (MP3, M4A, WAV, MP4, WEBM, MPEG, MPGA, MOV, MKV), text-based PDF, DOCX, PPTX and TXT. Recordings can be up to **two hours and 500 MB each**; documents up to 24 MB. Lecture notes remain text-only: video frames and diagrams are not analysed. Legacy .doc/.ppt files must be exported to DOCX/PPTX or PDF.
 
-This is a local prototype, not a production deployment. It has no accounts, authentication, rate limits, persistent jobs, OCR, diagram understanding, reliable timestamp citations, or guaranteed two-hour recording support. Keep it private. AI output needs source review. Legacy .doc/.ppt files must first be exported to DOCX/PPTX or PDF.
+## Long lecture processing
+
+Lecture uploads run as persistent background jobs. FFprobe checks duration and FFmpeg extracts 10-minute, 24 kbps mono speech sections with 10-second overlaps (13 sections for exactly two hours). Each section is transcribed separately, followed by detailed section notes and bounded consolidation passes. The final study guide asks the model to preserve concepts, formulas, examples and caveats, merge overlapping repetition and check section coverage. A deterministic list of processed source sections is appended. Time ranges identify audio sections; they are not word-level timestamps or proof of summary accuracy.
+
+Progress reports real counts for transcription and section notes, followed by consolidation. The job banner provides View progress/Open notes, Retry unfinished step and Cancel/Dismiss. Once upload acceptance completes, you can switch features, reload or close the browser and return at the same origin. Keep the Node server/Mac running. Server restarts automatically resume queued/interrupted jobs from disk; failed jobs wait for a manual Retry. Completed transcriptions, summaries and merge passes are checkpointed so retry does not intentionally repeat successful steps. A crash between an API response and saving its checkpoint can repeat that one call. Provider keys are read at runtime and never written into job metadata. Only one worker/server may use a job folder at once.
+
+Transient network errors, HTTP 5xx and rate limits receive at most three total attempts, using exponential backoff and Retry-After with a 60-second wait cap. Authentication errors and explicit insufficient-quota errors are not retried automatically. Each AI call retains a three-minute timeout; audio preparation allows ten minutes per section. Daily quotas, model access, context limits, output limits and provider uptime still apply. You can retry after fixing those prerequisites. This reduces failures caused by lecture length, but does not guarantee AI accuracy or unlimited free processing.
+
+Validation includes a real two-hour synthetic audio file through FFmpeg and all 13 sections, using simulated AI responses, plus checkpoint/restart/retry tests. A full academic two-hour lecture has **not** been validated against a live AI account; compare important points with the original source.
+
+### Job storage and privacy
+
+Jobs are stored under `.lecture-jobs/` (ignored by Git), or `LECTURE_JOBS_DIR` if set. Active and failed jobs retain recordings, transcripts and section notes on local disk for recovery. On success, source audio, extracted text checkpoints and section files are removed, retaining job metadata and final notes. Cancel/Dismiss deletes that server-side job and its files; notes already saved to browser My notes are preserved. There is no timed job retention policy yet. Upload staging uses temporary directories and is cleaned after the request; a hard process kill can leave temporary staging files for OS cleanup.
+
+The browser remembers the latest job ID in localStorage at the same origin. Clearing browser storage loses that recovery link; server job data is separate. Save the final result to a folder or download it before dismissing. This remains a **local single-user prototype without authentication**. Keep it private: anyone with access to the server can access job endpoints. Source content is sent to the selected AI provider; review its retention/data terms before uploading sensitive recordings.
 
 ## Next milestones
 
-1. Validate notes against 5–10 permitted lectures and measure omissions, accuracy, time and cost.
-2. Add authenticated direct uploads to private object storage and durable background jobs with progress and retries.
-3. Split long recordings into overlapping chunks, preserve timestamps, then merge topic notes with a whole-lecture coverage pass.
-4. Add source-linked citations, OCR and slide image understanding.
-5. Add deletion/retention controls, quotas and billing before opening the service to others.
+1. Evaluate 5–10 permitted real lectures for omissions, accuracy, time and API cost.
+2. Add authentication, private object storage and a production worker/queue before hosting publicly.
+3. Add OCR and slide graph/image understanding separately from text-only lecture processing.
+4. Add automatic retention, per-user quotas and billing.
 
 ## Diagnosing provider errors
 
 Run `npm run check:ai` to check whether the configured transcription and notes models are listed for your account. This reads the provider model listing without uploading files or printing the key. A listed model still may have rate limits or require account permissions when invoked. The app reports the failing stage, model, HTTP status and a sanitized provider error code. You can set `TRANSCRIPTION_MODEL` and `NOTES_MODEL` in your private `.env` to supported models shown in your provider console, then restart the app. Never share your `.env` or API key.
-
-Compression reduces file size, not API token or duration limits. Two hours of audio at 24 kbps is approximately 22 MB, but provider quotas, request timeouts and transcript limits can still prevent processing. FFmpeg compression has a ten-minute timeout; each AI request has a three-minute timeout. No audio chunking or persistent background jobs are implemented yet.
 
 ## Slides to notes
 
@@ -41,7 +52,7 @@ The dedicated Slides to notes section accepts one to five PPTX or text-based PDF
 
 ## Topic folders and saved notes
 
-The Folders & notes workspace stores notes in browser localStorage, grouped into topic folders. Generate notes or open the sample, edit the title and choose a folder above the notes, then click Save to folder. Use Create new folder beside the folder selector to create and automatically select a notes folder without leaving your current notes. Open a saved note and change its folder, then Update saved note to move it. You can create/rename/delete folders, delete individual notes with confirmation, or write/paste your own Markdown notes. Deleting a folder keeps its notes under Unfiled.
+The My notes workspace stores notes in browser localStorage, grouped into topic folders. Generate notes or open the sample, edit the title and choose a folder above the notes, then click Save to folder. Use Create new folder beside the folder selector to create and automatically select a notes folder without leaving your current notes. Open a saved note and change its folder, then Update saved note to move it. You can create/rename/delete folders, delete individual notes with confirmation, or write/paste your own Markdown notes. Deleting a folder keeps its notes under Unfiled.
 
 Notes persist only in the same browser profile at the same web origin (scheme, host and port); a different port or browser has a separate library. They are not synced to GitHub or stored with the server. Clearing browser data removes them; download important notes as Markdown for backup. Private browsing and browser storage quotas may prevent saving; the app reports save failures rather than claiming success. An unrecognised or corrupt existing library is preserved rather than overwritten.
 
@@ -51,7 +62,7 @@ Use the fixed Create flashcard button while reading notes. Highlight a passage i
 
 ## Dashboard navigation
 
-The app opens on an overview dashboard with saved-item counts and shortcuts. Use the persistent navigation to switch between Lecture notes, Slide notes, My notes and Flashcards; on mobile all six navigation choices appear in a compact grid. Only the selected workspace is displayed. Generating or opening notes opens the reading view inside My notes, and switching workspaces keeps current notes and form drafts in memory. Hash-based navigation supports browser back/forward and links such as `#library`. The Flashcards workspace has an independent topic filter and separate folders from the notes library. Saved notes and cards keep the same browser storage key; changing the dashboard layout does not migrate or erase them. Unsaved notes and drafts still do not survive a page reload.
+The app opens on an overview dashboard with saved-item counts and shortcuts. Use the persistent navigation to switch between Lecture notes, Slide notes, My notes and Flashcards; on mobile all navigation choices appear in a compact grid. Only the selected workspace is displayed. Generating or opening notes opens the reading view inside My notes, and switching workspaces keeps current notes and form drafts in memory. Hash-based navigation supports browser back/forward and links such as `#library`. The Flashcards workspace has an independent topic filter and separate folders from the notes library. Saved notes and cards keep the same browser storage key; changing the dashboard layout does not migrate or erase them. Unsaved notes and drafts still do not survive a page reload.
 
 
 ## Back navigation and revision tests
@@ -67,7 +78,7 @@ Folders, saved-note browsing and reading now live together under My notes. Its d
 
 ## Generation loading state
 
-Submitting a lecture or slide-deck upload opens the My notes reading view with a prominent loading panel, animated spinner, selected filenames and elapsed time. The save controls are hidden while processing. This is an indeterminate indicator: it does not invent completion percentages or claim which server stage has finished. Successful generation replaces the panel with the study guide. Failure stops the spinner and shows an error and link back to the appropriate upload tool; any previous notes remain available below the error. The elapsed timer stops on success, failure or when another note is opened. Keep the browser tab open while a request is processing.
+Submitting a lecture or slide-deck upload opens the My notes reading view with a prominent loading panel, animated spinner, selected filenames and elapsed time. The save controls are hidden while processing. This is an indeterminate indicator: it does not invent completion percentages or claim which server stage has finished. Successful generation replaces the panel with the study guide. Failure stops the spinner and shows an error and link back to the appropriate upload tool; any previous notes remain available below the error. The elapsed timer stops on success, failure or when another note is opened. Slide-note requests still require the tab to stay open. Lecture jobs continue in the background after upload acceptance and expose stage counts in the loading panel.
 
 ## Exiting revision tests
 

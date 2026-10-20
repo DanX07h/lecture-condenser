@@ -68,3 +68,10 @@
 #flashcard-editor .window-resize{position:absolute;width:20px;height:20px;padding:0;border:0;border-radius:0;background:transparent;touch-action:none;z-index:2}
 .window-resize::after{content:'';position:absolute;width:7px;height:7px;background:#729465;border:1px solid #fff;border-radius:2px;top:6px;left:6px}
 .window-resize-nw{top:0;left:0;cursor:nwse-resize}.window-resize-ne{top:0;right:0;cursor:nesw-resize}.window-resize-sw{bottom:0;left:0;cursor:nesw-resize}.window-resize-se{bottom:0;right:0;cursor:nwse-resize}
+.lecture-job-banner{max-width:1260px;margin:0 auto 20px;padding:15px 18px;border:1px solid #cbdcbd;border-radius:10px;background:#edf4e4;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.lecture-job-banner>span{font-size:12px;color:#385c3e;line-height:1.7;overflow-wrap:anywhere}
+.lecture-job-banner>div{display:flex;flex-wrap:wrap;gap:8px;flex-shrink:0}
+.lecture-job-banner button{font-size:11px;padding:9px 12px}
+#generation-stage-progress{display:block;width:100%;height:12px;accent-color:#648c51;margin:12px auto;max-width:400px}
+#generation-stage-label{font-size:12px;font-weight:600;color:#4b7043}
+@media(max-width:760px){.lecture-job-banner{flex-direction:column;align-items:stretch}.lecture-job-banner>div{flex-shrink:1}}

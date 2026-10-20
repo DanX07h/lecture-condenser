@@ -32,7 +32,7 @@ test('uploads compress media, consolidate multiple decks, reject invalid decks a
     }
     throw Error('Unexpected provider endpoint');
   };`;
-  child=spawn(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(preload),'server.js'],{env:{...process.env,PORT:'0',TMPDIR:root,AI_PROVIDER:'groq',GROQ_API_KEY:'test-placeholder'},stdio:['ignore','pipe','pipe']});
+  child=spawn(process.execPath,['--import','data:text/javascript,'+encodeURIComponent(preload),'server.js'],{env:{...process.env,PORT:'0',TMPDIR:root,LECTURE_JOBS_DIR:join(root,'jobs'),AI_PROVIDER:'groq',GROQ_API_KEY:'test-placeholder'},stdio:['ignore','pipe','pipe']});
   const port=await new Promise((resolve,reject)=>{
     let log='';child.stdout.on('data',chunk=>{log+=chunk;const match=log.match(/listening on port (\d+)/);if(match)resolve(match[1]);});
     child.once('error',reject);child.once('exit',()=>reject(Error('Server exited before readiness')));
@@ -57,7 +57,7 @@ test('uploads compress media, consolidate multiple decks, reject invalid decks a
     if(!(await readdir(root)).some(name=>name.startsWith('lecture-condenser-'))) break;
     await new Promise(resolve=>setTimeout(resolve,20));
   }
-  assert.deepEqual(await readdir(root),['original.wav']);
+  assert.deepEqual((await readdir(root)).sort(),['jobs','original.wav']);
  } finally {
   if(child && child.exitCode===null){const exited=once(child,'exit');child.kill();await exited;}
   await rm(root,{recursive:true,force:true});

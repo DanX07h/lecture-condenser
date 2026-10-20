@@ -28,8 +28,8 @@ export function aiConfig(env=process.env) {
     transcriptionModel:env.TRANSCRIPTION_MODEL || (groq ? 'whisper-large-v3-turbo' : 'whisper-1'),
     notesModel:env.NOTES_MODEL || (groq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini')};
 }
-export async function aiRequest(path, body, isForm=false, config=aiConfig()) {
-  const response = await fetch(`${config.base}/${path}`, {method:'POST',headers:{Authorization:`Bearer ${config.key}`,...(!isForm?{'Content-Type':'application/json'}:{})},body:isForm?body:JSON.stringify(body),signal:AbortSignal.timeout(180000)});
+export async function aiRequest(path, body, isForm=false, config=aiConfig(), options={}) {
+  const response = await fetch(`${config.base}/${path}`, {method:'POST',headers:{Authorization:`Bearer ${config.key}`,...(!isForm?{'Content-Type':'application/json'}:{})},body:isForm?body:JSON.stringify(body),signal:options.signal?AbortSignal.any([options.signal,AbortSignal.timeout(180000)]):AbortSignal.timeout(180000)});
   if (!response.ok) {
     let code;
     try { const data=await response.json(); code=data.error?.code; } catch {}
@@ -44,7 +44,11 @@ export async function aiRequest(path, body, isForm=false, config=aiConfig()) {
     const details = response.status === 404
       ? `The requested model may be unavailable for this account. Run npm run check:ai to check model access. ${reason}`
       : reason;
-    throw new Error(`${config.provider} ${stage} failed (${response.status}), model ${String(model).replace(/[^a-zA-Z0-9/_.-]/g, '').slice(0,100)}.${safeCode} ${details}`);
+    const error=new Error(`${config.provider} ${stage} failed (${response.status}), model ${String(model).replace(/[^a-zA-Z0-9/_.-]/g, '').slice(0,100)}.${safeCode} ${details}`);
+    error.status=response.status;error.code=code;
+    const retryAfter=response.headers?.get('retry-after');
+    error.retryAfterMs=retryAfter ? (Number.isFinite(Number(retryAfter))?Number(retryAfter)*1000:Math.max(0,Date.parse(retryAfter)-Date.now())) : 0;
+    throw error;
   }
   return response.json();
 }
