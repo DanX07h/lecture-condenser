@@ -44,3 +44,25 @@ test('flashcard test covers selected folders, hides answers, records self-assess
  $('review-missed').click();assert.match($('quiz-progress').textContent,/1 of 1/);assert.equal($('quiz-reveal').hidden,true);
  dom.window.close();
 });
+test('exit test returns to saved flashcards before completion and preserves library data',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const $=id=>document.getElementById(id);const library=new NoteLibrary(window.localStorage);
+ library.saveFlashcard({question:'Q1',answer:'A1'});library.saveFlashcard({question:'Q2',answer:'A2'});const before=window.localStorage.getItem(LIBRARY_KEY);
+ setupQuiz();$('open-test').click();$('quiz-source').value='flashcards';$('quiz-source').dispatchEvent(new window.Event('change'));
+ $('quiz-folder-options').querySelector('input[value=unfiled]').checked=true;$('start-test').click();assert.equal($('quiz-session').hidden,false);
+ assert.equal($('end-test').closest('#quiz-session'),null);$('end-test').click();
+ assert.equal($('card-browser').hidden,false);assert.equal($('quiz-workspace').hidden,true);assert.equal($('quiz-session').hidden,true);assert.equal($('browse-cards').getAttribute('aria-pressed'),'true');assert.equal(window.localStorage.getItem(LIBRARY_KEY),before);
+ dom.window.close();
+});
+test('exiting during AI generation aborts the request and ignores a late response',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const $=id=>document.getElementById(id);const library=new NoteLibrary(window.localStorage);library.saveNote({title:'Cells',content:'Cells have membranes.'});
+ const original=globalThis.fetch;let resolveRequest,signal;
+ try{
+ globalThis.fetch=(_url,options)=>{signal=options.signal;return new Promise(resolve=>resolveRequest=resolve);};
+ setupQuiz();$('open-test').click();$('quiz-folder-options').querySelector('input[value=unfiled]').checked=true;
+ const pending=$('start-test').onclick();assert.equal($('start-test').disabled,true);$('end-test').click();assert.equal(signal.aborted,true);assert.equal($('card-browser').hidden,false);
+ resolveRequest({ok:true,json:async()=>({questions:[{question:'What surrounds a cell?',answer:'Membrane'}]})});await pending;
+ assert.equal($('quiz-session').hidden,true);assert.equal($('quiz-workspace').hidden,true);assert.equal($('start-test').disabled,false);
+ }finally{globalThis.fetch=original;dom.window.close();}
+});

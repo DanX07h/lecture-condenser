@@ -43,3 +43,8 @@
 #generation-error-actions{margin-top:22px}
 @keyframes generation-spin{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.generation-spinner{animation:none;border-style:dashed}}
+.quiz-exit-bar{position:sticky;top:0;z-index:4;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:-8px 0 24px;padding:14px 0;background:#fff;border-bottom:1px solid #dfe7d7}
+.quiz-exit-bar strong{display:block;font-size:14px}
+.quiz-exit-bar span{display:block;font-size:10px;color:#7b8871;margin-top:5px}
+.quiz-exit-bar button{flex-shrink:0;border:1px solid #254b35}
+@media(max-width:760px){.quiz-exit-bar{top:120px;flex-wrap:wrap;gap:10px}.quiz-exit-bar button{width:100%}}

@@ -68,3 +68,7 @@ Folders, saved-note browsing and reading now live together under My notes. Its d
 ## Generation loading state
 
 Submitting a lecture or slide-deck upload opens the My notes reading view with a prominent loading panel, animated spinner, selected filenames and elapsed time. The save controls are hidden while processing. This is an indeterminate indicator: it does not invent completion percentages or claim which server stage has finished. Successful generation replaces the panel with the study guide. Failure stops the spinner and shows an error and link back to the appropriate upload tool; any previous notes remain available below the error. The elapsed timer stops on success, failure or when another note is opened. Keep the browser tab open while a request is processing.
+
+## Exiting revision tests
+
+The sticky Exit test · Back to flashcards button is available throughout test setup, AI generation, active questions and results. It returns directly to My flashcards and clears temporary session progress without changing saved notes or cards. Exiting while AI questions are loading aborts the browser request; stale responses are ignored so an exited test cannot reopen. An AI request already submitted to the server/provider may still finish there.

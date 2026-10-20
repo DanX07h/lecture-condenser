@@ -7,7 +7,7 @@ export function selectQuestions(data,source,folderIds){
 export function setupQuiz(){
   const $=id=>document.getElementById(id);
   const library=new NoteLibrary(window.localStorage);
-  let questions=[],index=0,missed=[],known=0,controller=null;
+  let questions=[],index=0,missed=[],known=0,controller=null,requestVersion=0;
   function folders(){
     try{
       const data=library.read(),source=$('quiz-source').value;
@@ -22,7 +22,8 @@ export function setupQuiz(){
     }catch(error){$('quiz-status').textContent=error.message;}
   }
   function reset(){
-    controller?.abort();controller=null;
+    requestVersion++;controller?.abort();controller=null;
+    questions=[];index=0;missed=[];known=0;$('quiz-response').value='';
     $('quiz-setup').hidden=false;$('quiz-session').hidden=true;$('quiz-results').hidden=true;
     $('start-test').disabled=false;$('quiz-source').disabled=false;$('quiz-folders').disabled=false;$('quiz-status').textContent='';folders();
   }
@@ -59,21 +60,22 @@ export function setupQuiz(){
   $('start-test').onclick=async()=>{
     const selected=[...$('quiz-folder-options').querySelectorAll('input:checked')].map(input=>input.value);
     if(!selected.length){$('quiz-status').textContent='Select at least one folder containing notes or flashcards.';return;}
+    const requestId=++requestVersion;
     try{
       const data=library.read(),source=$('quiz-source').value,items=selectQuestions(data,source,selected);
       if(!items.length)throw Error('Those folders are empty. Select another folder.');
       if(source==='flashcards'){begin(items.map(card=>({...card,source:data.flashcardFolders.find(f=>f.id===card.folderId)?.name||'Unfiled flashcards'})));return;}
       if(items.length>50)throw Error('Choose fewer folders: a test supports up to 50 notes.');
-      controller=new AbortController();
+      const requestController=new AbortController();controller=requestController;
       $('start-test').disabled=true;$('quiz-source').disabled=true;$('quiz-folders').disabled=true;$('quiz-status').textContent='Creating questions from your selected notes…';
-      const response=await fetch('/api/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({notes:items.map(n=>({title:n.title,content:n.content}))}),signal:controller.signal});
-      const result=await response.json();if(!response.ok)throw Error(result.error||'Could not create the test.');begin(result.questions);
-    }catch(error){if(error.name!=='AbortError')$('quiz-status').textContent=error.message;}
-    finally{$('start-test').disabled=false;$('quiz-source').disabled=false;$('quiz-folders').disabled=false;}
+      const response=await fetch('/api/quiz',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({notes:items.map(n=>({title:n.title,content:n.content}))}),signal:requestController.signal});
+      const result=await response.json();if(requestId!==requestVersion||requestController.signal.aborted)return;if(!response.ok)throw Error(result.error||'Could not create the test.');begin(result.questions);
+    }catch(error){if(requestId===requestVersion&&error.name!=='AbortError')$('quiz-status').textContent=error.message;}
+    finally{if(requestId===requestVersion){controller=null;$('start-test').disabled=false;$('quiz-source').disabled=false;$('quiz-folders').disabled=false;}}
   };
   $('reveal-test-answer').onclick=()=>{$('quiz-reveal').hidden=false;$('reveal-test-answer').hidden=true;};
   $('quiz-knew').onclick=()=>rate(true);$('quiz-again').onclick=()=>rate(false);
   $('review-missed').onclick=()=>begin(missed);
   $('new-test').onclick=reset;
-  $('end-test').onclick=()=>{if(window.confirm('End this test and choose folders again?'))reset();};
+  $('end-test').onclick=()=>{mode(false);$('browse-cards').focus();document.getElementById('main-content').scrollTop=0;};
 }
