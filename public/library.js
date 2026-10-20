@@ -1,6 +1,8 @@
+import {setupFloatingWindow} from './floating-window.js';
 import {NoteLibrary,LIBRARY_KEY} from './library-store.js';
 export function setupLibrary({onOpen,getCurrent}) {
   const $=id=>document.getElementById(id);
+  const floatingWindow=setupFloatingWindow($('flashcard-editor'));
   let library,active='all',currentId=null,editingCard=null,cardActive='all';
   const tell=text=>{$('library-status').textContent=text;};
   function attempt(action){try{return action();}catch(error){tell(error.name==='QuotaExceededError'?'Browser storage is full. Download your notes before removing older saved notes. Nothing new was saved.':`Could not update your library: ${error.message}`);return null;}}
@@ -67,7 +69,7 @@ export function setupLibrary({onOpen,getCurrent}) {
     else $('flashcard-folder').value=['all','unfiled'].includes(cardActive)?'':cardActive;
     $('flashcard-editor-heading').textContent=card?'Edit flashcard':'Create a personal flashcard';
     $('flashcard-feedback').textContent='';
-    $('flashcard-editor').show();
+    $('flashcard-editor').show();floatingWindow.refresh();
     $('flashcard-question').focus();
   }
   $('create-flashcard').onclick=()=>openCard();

@@ -55,3 +55,16 @@
 #save-folder-name{flex:1;min-width:120px}
 #save-folder-feedback{font-size:11px;margin:8px 0 0;color:#4d7045;overflow-wrap:anywhere}
 #save-folder-feedback:empty{display:none}
+/* A movable window with a fixed header and an independently scrolling form. */
+#flashcard-editor{padding:0;overflow:hidden;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px)}
+#flashcard-editor[open]{display:flex;flex-direction:column}
+.flashcard-window-header{flex:0 0 auto;flex-wrap:nowrap;gap:12px;padding:18px 22px;border-bottom:1px solid #dce5d3;background:#eef3e7;cursor:grab;touch-action:none;user-select:none}
+#flashcard-editor .flashcard-window-header h3{font-size:16px;max-width:none;flex:1;line-height:1.5}
+#close-flashcard{font:400 28px/1 sans-serif;padding:4px 8px;color:#345544;border-radius:6px;cursor:pointer;flex-shrink:0}
+#close-flashcard:hover{background:#dce7cf}
+.flashcard-window-body{padding:15px 23px 23px;min-height:0;overflow-y:auto;flex:1}
+.flashcard-window-body>p{font-size:12px;line-height:1.7;color:#718068;margin-top:0}
+.window-adjusting,.window-adjusting .flashcard-window-header{cursor:grabbing;user-select:none}
+#flashcard-editor .window-resize{position:absolute;width:20px;height:20px;padding:0;border:0;border-radius:0;background:transparent;touch-action:none;z-index:2}
+.window-resize::after{content:'';position:absolute;width:7px;height:7px;background:#729465;border:1px solid #fff;border-radius:2px;top:6px;left:6px}
+.window-resize-nw{top:0;left:0;cursor:nwse-resize}.window-resize-ne{top:0;right:0;cursor:nesw-resize}.window-resize-sw{bottom:0;left:0;cursor:nesw-resize}.window-resize-se{bottom:0;right:0;cursor:nwse-resize}

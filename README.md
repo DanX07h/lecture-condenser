@@ -72,3 +72,7 @@ Submitting a lecture or slide-deck upload opens the My notes reading view with a
 ## Exiting revision tests
 
 The sticky Exit test · Back to flashcards button is available throughout test setup, AI generation, active questions and results. It returns directly to My flashcards and clears temporary session progress without changing saved notes or cards. Exiting while AI questions are loading aborts the browser request; stale responses are ignored so an exited test cannot reopen. An AI request already submitted to the server/provider may still finish there.
+
+## Moving the flashcard editor
+
+Drag the flashcard window by its header to move it, and drag any of its four corner handles to resize it. The form scrolls inside smaller windows while the header and × close button remain available. The window is constrained to the viewport and adjusts when the screen size changes. The header and corner handles also support arrow keys (Shift for larger steps) when focused. Close with × or Escape. Window size/position are retained while the page is open, not after a reload.
