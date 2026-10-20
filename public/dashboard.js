@@ -1,5 +1,5 @@
 export function setupDashboard(){
-  const names={dashboard:'Overview',lectures:'Lecture notes',slides:'Slide decks',library:'My notes',flashcards:'Flashcards'};
+  const names={dashboard:'Overview',lectures:'Lecture notes',slides:'Slide notes',library:'My notes',flashcards:'Flashcards'};
   function route(requested){
     // Keep old reader bookmarks working inside My notes.
     const detail=requested==='reader'||requested==='library/note';

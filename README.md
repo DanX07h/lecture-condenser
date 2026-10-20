@@ -51,7 +51,7 @@ Use the fixed Create flashcard button while reading notes. Highlight a passage i
 
 ## Dashboard navigation
 
-The app opens on an overview dashboard with saved-item counts and shortcuts. Use the persistent navigation to switch between Lecture notes, Slide decks, My notes and Flashcards; on mobile all six navigation choices appear in a compact grid. Only the selected workspace is displayed. Generating or opening notes opens the reading view inside My notes, and switching workspaces keeps current notes and form drafts in memory. Hash-based navigation supports browser back/forward and links such as `#library`. The Flashcards workspace has an independent topic filter and separate folders from the notes library. Saved notes and cards keep the same browser storage key; changing the dashboard layout does not migrate or erase them. Unsaved notes and drafts still do not survive a page reload.
+The app opens on an overview dashboard with saved-item counts and shortcuts. Use the persistent navigation to switch between Lecture notes, Slide notes, My notes and Flashcards; on mobile all six navigation choices appear in a compact grid. Only the selected workspace is displayed. Generating or opening notes opens the reading view inside My notes, and switching workspaces keeps current notes and form drafts in memory. Hash-based navigation supports browser back/forward and links such as `#library`. The Flashcards workspace has an independent topic filter and separate folders from the notes library. Saved notes and cards keep the same browser storage key; changing the dashboard layout does not migrate or erase them. Unsaved notes and drafts still do not survive a page reload.
 
 
 ## Back navigation and revision tests

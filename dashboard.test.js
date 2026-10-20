@@ -15,7 +15,7 @@ test('dashboard navigation shows one tool, preserves drafts and responds to hist
  dashboard.navigate('library/note');assert.deepEqual(visible(),['library']);assert.equal(document.getElementById('notes-list-view').hidden,true);assert.equal(document.getElementById('notes-detail-view').hidden,false);assert.equal(document.querySelector('[aria-current=page]').dataset.nav,'library');assert.equal(document.getElementById('create-flashcard').hidden,false);
  dashboard.navigate('library');assert.equal(document.getElementById('notes-list-view').hidden,false);assert.equal(document.getElementById('notes-detail-view').hidden,true);assert.equal(document.getElementById('folder-name').value,'My topic');
  dashboard.navigate('flashcards');assert.equal(document.getElementById('create-flashcard').hidden,true);assert.equal(document.getElementById('notes').textContent,'Unsaved lecture notes');
- window.location.hash='slides';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['slides']);assert.match(document.title,/Slide decks/);
+ window.location.hash='slides';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['slides']);assert.match(document.title,/Slide notes/);
  window.location.hash='invalid';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['dashboard']);
  assert.equal(document.querySelector('[data-nav=reader]'),null);assert.equal(document.querySelector('[data-nav=library] span').textContent,'My notes');
  window.location.hash='reader';window.dispatchEvent(new window.HashChangeEvent('hashchange'));assert.deepEqual(visible(),['library']);assert.equal(document.getElementById('notes-detail-view').hidden,false);
