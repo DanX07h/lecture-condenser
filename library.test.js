@@ -89,3 +89,12 @@ test('flashcard UI uses selected notes, saves, flips, edits and moves without ex
  assert.equal(library.read().flashcards.length,1);assert.equal(library.read().flashcards[0].folderId,null);assert.equal(library.read().flashcards[0].question,'What surrounds a cell?');
  dom.window.close();
 });
+test('reader creates and selects a note folder without losing current notes, then saves into it',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const $=id=>document.getElementById(id);const content='# New lecture\nImportant details';const ui=setupLibrary({onOpen:()=>{},getCurrent:()=>content});ui.newNotes(content);
+ $('new-save-folder').click();assert.equal($('save-folder-editor').hidden,false);$('save-folder-name').value='Biology';$('create-save-folder').click();
+ const library=new NoteLibrary(window.localStorage),id=library.read().folders[0].id;assert.equal($('save-folder').value,id);assert.equal($('save-title').value,'New lecture');assert.equal($('save-folder-editor').hidden,true);assert.equal(library.read().notes.length,0);
+ $('new-save-folder').click();$('save-folder-name').value='Biology';$('create-save-folder').click();assert.match($('save-folder-feedback').textContent,/already exists/);assert.equal($('save-folder').value,id);$('cancel-save-folder').click();
+ $('save-form').dispatchEvent(new window.Event('submit',{cancelable:true}));assert.equal(library.read().notes[0].folderId,id);assert.equal(library.read().notes[0].content,content);assert.equal(library.read().flashcardFolders.length,0);
+ dom.window.close();
+});

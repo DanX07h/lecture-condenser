@@ -41,7 +41,7 @@ The dedicated Slides to notes section accepts one to five PPTX or text-based PDF
 
 ## Topic folders and saved notes
 
-The Folders & notes workspace stores notes in browser localStorage, grouped into topic folders. Generate notes or open the sample, edit the title and choose a folder above the notes, then click Save to folder. Open a saved note and change its folder, then Update saved note to move it. You can create/rename/delete folders, delete individual notes with confirmation, or write/paste your own Markdown notes. Deleting a folder keeps its notes under Unfiled.
+The Folders & notes workspace stores notes in browser localStorage, grouped into topic folders. Generate notes or open the sample, edit the title and choose a folder above the notes, then click Save to folder. Use Create new folder beside the folder selector to create and automatically select a notes folder without leaving your current notes. Open a saved note and change its folder, then Update saved note to move it. You can create/rename/delete folders, delete individual notes with confirmation, or write/paste your own Markdown notes. Deleting a folder keeps its notes under Unfiled.
 
 Notes persist only in the same browser profile at the same web origin (scheme, host and port); a different port or browser has a separate library. They are not synced to GitHub or stored with the server. Clearing browser data removes them; download important notes as Markdown for backup. Private browsing and browser storage quotas may prevent saving; the app reports save failures rather than claiming success. An unrecognised or corrupt existing library is preserved rather than overwritten.
 

@@ -48,3 +48,10 @@
 .quiz-exit-bar span{display:block;font-size:10px;color:#7b8871;margin-top:5px}
 .quiz-exit-bar button{flex-shrink:0;border:1px solid #254b35}
 @media(max-width:760px){.quiz-exit-bar{top:120px;flex-wrap:wrap;gap:10px}.quiz-exit-bar button{width:100%}}
+.save-folder-create{grid-column:1/-1}
+#new-save-folder{padding:3px 0;text-align:left;font-size:12px}
+#save-folder-editor{margin-top:12px;padding:12px;border:1px solid #d4dfc8;border-radius:7px;background:#fff}
+#save-folder-editor .inline-controls{flex-wrap:wrap}
+#save-folder-name{flex:1;min-width:120px}
+#save-folder-feedback{font-size:11px;margin:8px 0 0;color:#4d7045;overflow-wrap:anywhere}
+#save-folder-feedback:empty{display:none}

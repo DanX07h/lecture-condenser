@@ -83,6 +83,25 @@ export function setupLibrary({onOpen,getCurrent}) {
   };
   attempt(()=>{library=new NoteLibrary(window.localStorage);render();});
   $('folder-form').onsubmit=event=>{event.preventDefault();attempt(()=>{active=library.createFolder($('folder-name').value);$('folder-name').value='';render();$('save-folder').value=active;$('manual-folder').value=active;tell('Folder created.');});};
+  function closeSaveFolder(){
+    $('save-folder-editor').hidden=true;$('new-save-folder').setAttribute('aria-expanded','false');$('save-folder-name').value='';$('save-folder-feedback').textContent='';$('new-save-folder').focus();
+  }
+  $('new-save-folder').onclick=()=>{
+    $('save-folder-editor').hidden=false;$('new-save-folder').setAttribute('aria-expanded','true');$('save-folder-feedback').textContent='';$('save-folder-name').focus();
+  };
+  $('cancel-save-folder').onclick=closeSaveFolder;
+  $('create-save-folder').onclick=()=>{
+    try{
+      const name=$('save-folder-name').value.trim();
+      const id=library.createFolder(name);
+      render();$('save-folder').value=id;closeSaveFolder();
+      $('save-folder-feedback').textContent=`Folder “${name}” created and selected. Click Save notes to folder to save your notes.`;
+    }catch(error){$('save-folder-feedback').textContent=error.name==='QuotaExceededError'?'Browser storage is full. The folder was not created.':error.message;}
+  };
+  $('save-folder-name').onkeydown=event=>{
+    if(event.key==='Enter'){event.preventDefault();$('create-save-folder').click();}
+    if(event.key==='Escape'){event.preventDefault();closeSaveFolder();}
+  };
   $('save-form').onsubmit=event=>{event.preventDefault();attempt(()=>{const content=getCurrent();if(!content)throw Error('Generate or open notes first.');currentId=library.saveNote({id:currentId,title:$('save-title').value,content,folderId:$('save-folder').value||null});render();$('save-note').textContent='Update saved note';tell('Notes saved in this browser.');$('save-hint').textContent='Saved successfully. Find these notes in My notes.';});};
   $('manual-form').onsubmit=event=>{event.preventDefault();attempt(()=>{library.saveNote({title:$('manual-title').value,content:$('manual-content').value,folderId:$('manual-folder').value||null});$('manual-title').value='';$('manual-content').value='';render();tell('Your note was saved.');});};
   $('rename-folder').onclick=()=>{attempt(()=>{const folder=library.read().folders.find(f=>f.id===active);const name=window.prompt('Folder name',folder.name);if(name===null)return;library.renameFolder(active,name);render();tell('Folder renamed.');});};
