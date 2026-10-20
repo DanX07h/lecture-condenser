@@ -26,7 +26,7 @@ async function createNotes(selectedForm,slidesMode=false) {
     if(file.size>(media?500:24)*1024*1024){status.textContent=media?'Recordings must be 500 MB or smaller.':'Documents must be 24 MB or smaller.';return;}
   }
   generate.disabled=true;consolidate.disabled=true;document.querySelector('#sample').disabled=true;
-  download.hidden=true;output.hidden=true;document.querySelector('#save-form').hidden=true;document.querySelector('#empty').hidden=true;
+  download.hidden=true;output.hidden=true;document.querySelector('#save-note').disabled=true;document.querySelector('#empty').hidden=true;
   status.textContent=slidesMode
     ? 'Reading your decks and consolidating topics… Keep this page open.'
     : 'Uploading and processing… Videos and large audio files are automatically compressed to speech audio. This may take several minutes. Keep this page open.';
@@ -36,7 +36,7 @@ async function createNotes(selectedForm,slidesMode=false) {
     show(result.notes);
     status.textContent=(result.compressedFiles?'Recording compressed successfully. ':'')+(slidesMode?'Consolidated notes ready. Check key points against your slides.':'Notes ready. Check key details against your source material.');
   }catch(error){status.textContent=error.message;}
-  finally{generate.disabled=false;consolidate.disabled=false;document.querySelector('#sample').disabled=false;}
+  finally{generate.disabled=false;consolidate.disabled=false;document.querySelector('#sample').disabled=false;document.querySelector('#save-note').disabled=!notes;}
 }
 form.onsubmit=event=>{event.preventDefault();createNotes(form);};
 slidesForm.onsubmit=event=>{event.preventDefault();createNotes(slidesForm,true);};

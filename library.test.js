@@ -45,3 +45,20 @@ test('library UI saves, reopens and moves a note without duplicating it; handles
  assert.equal(library.read().notes.length,2);
  dom.window.close();
 });
+test('main page exposes folder creation and save panel before notes exist',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});
+ globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const $=id=>document.getElementById(id);let content='';
+ const ui=setupLibrary({onOpen:()=>{},getCurrent:()=>content});
+ assert.equal($('save-form').hidden,false);assert.equal($('save-note').disabled,true);
+ assert.equal(document.querySelectorAll('#folder-form').length,1);
+ assert.ok(document.querySelector('.organiser-banner #folder-form'));
+ $('folder-name').value='Psychology';$('folder-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ assert.equal($('save-folder').selectedOptions[0].textContent,'Psychology');
+ content='# Memory\nMemory notes';ui.newNotes(content);
+ assert.equal($('save-note').disabled,false);assert.equal($('save-title').disabled,false);
+ $('save-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ assert.equal(new NoteLibrary(window.localStorage).read().notes[0].title,'Memory');
+ assert.match($('save-hint').textContent,/Saved successfully/);
+ dom.window.close();
+});
