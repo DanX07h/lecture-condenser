@@ -62,3 +62,30 @@ test('main page exposes folder creation and save panel before notes exist',async
  assert.match($('save-hint').textContent,/Saved successfully/);
  dom.window.close();
 });
+test('flashcards migrate alongside existing notes, persist, move and survive folder deletion',()=>{
+ const disk=storage();disk.setItem(LIBRARY_KEY,JSON.stringify({version:1,folders:[],notes:[{id:'old-note',title:'Existing',content:'Keep this',folderId:null}]}));
+ const library=new NoteLibrary(disk);assert.deepEqual(library.read().flashcards,[]);
+ const folder=library.createFolder('Memory');const id=library.saveFlashcard({question:'What is recall?',answer:'Retrieval of learned information.',folderId:folder});
+ const reloaded=new NoteLibrary(disk);assert.equal(reloaded.read().notes[0].id,'old-note');assert.equal(reloaded.read().flashcards[0].answer,'Retrieval of learned information.');
+ reloaded.saveFlashcard({id,question:'Define recall',answer:'Retrieving information',folderId:null});assert.equal(reloaded.read().flashcards.length,1);assert.equal(reloaded.read().flashcards[0].folderId,null);
+ reloaded.saveFlashcard({id,question:'Define recall',answer:'Retrieving information',folderId:folder});reloaded.deleteFolder(folder);assert.equal(reloaded.read().flashcards[0].folderId,null);assert.equal(reloaded.read().notes.length,1);
+ assert.throws(()=>reloaded.saveFlashcard({question:'',answer:'Text'}),/Enter a question/);
+ reloaded.deleteFlashcard(id);assert.equal(reloaded.read().flashcards.length,0);
+});
+test('flashcard UI uses selected notes, saves, flips, edits and moves without executing HTML',async()=>{
+ const dom=new JSDOM(await readFile(new URL('./public/index.html',import.meta.url),'utf8'),{url:'http://localhost:3000'});
+ globalThis.window=dom.window;globalThis.document=dom.window.document;
+ const $=id=>document.getElementById(id);
+ $('flashcard-editor').show=function(){this.open=true;};$('flashcard-editor').close=function(){this.open=false;};
+ const ui=setupLibrary({onOpen:()=>{},getCurrent:()=>''});
+ $('folder-name').value='Biology';$('folder-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ $('notes').textContent='Cells have membranes.';
+ const range=document.createRange();range.selectNodeContents($('notes'));window.getSelection().addRange(range);
+ $('create-flashcard').click();assert.equal($('flashcard-editor').open,true);assert.equal($('flashcard-answer').value,'Cells have membranes.');
+ $('flashcard-question').value='<img src=x onerror=alert(1)>';$('flashcard-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ const library=new NoteLibrary(window.localStorage);assert.equal(library.read().flashcards.length,1);assert.equal($('flashcard-editor').open,false);assert.equal(document.querySelector('.study-card img'),null);
+ const flip=[...document.querySelectorAll('.study-card button')].find(b=>b.textContent==='Show answer');assert.equal(document.querySelector('.flashcard-answer').hidden,true);flip.click();assert.equal(document.querySelector('.flashcard-answer').hidden,false);assert.equal(flip.getAttribute('aria-expanded'),'true');
+ [...document.querySelectorAll('.study-card button')].find(b=>b.textContent==='Edit / move').click();$('flashcard-question').value='What surrounds a cell?';$('flashcard-folder').value='';$('flashcard-form').dispatchEvent(new window.Event('submit',{cancelable:true}));
+ assert.equal(library.read().flashcards.length,1);assert.equal(library.read().flashcards[0].folderId,null);assert.equal(library.read().flashcards[0].question,'What surrounds a cell?');
+ dom.window.close();
+});
