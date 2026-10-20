@@ -29,3 +29,17 @@
 #quiz-source-title{margin:18px 0}
 #quiz-workspace label,#quiz-folders legend{font-size:13px;font-weight:600}
 @media(max-width:760px){#quiz-folder-options{grid-template-columns:1fr}}
+.generation-panel{margin:24px 0;min-height:340px;border:1px solid #dce6d0;border-radius:12px;background:linear-gradient(145deg,#f2f6e9,#fafbf6);padding:35px 25px;text-align:center}
+.generation-spinner{width:48px;height:48px;margin:0 auto 24px;border:4px solid #dfe8d3;border-top-color:#547b46;border-radius:50%;animation:generation-spin 1s linear infinite}
+.generation-panel h3{font-size:21px;margin:13px 0;line-height:1.4}
+.generation-panel>p{font-size:13px;max-width:480px;margin:12px auto}
+.generation-panel .eyebrow{font-size:9px;color:#718961}
+.generation-panel .generation-files{font-size:11px;font-weight:600;color:#4d6d44;overflow-wrap:anywhere}
+.generation-panel .generation-elapsed{font-size:12px;font-variant-numeric:tabular-nums;color:#627b54}
+#generation-tip{font-size:11px;color:#7b896f}
+.generation-error{background:#fbf6ef;border-color:#e6d5bf}
+.generation-error .eyebrow{display:none}
+.generation-error h3{color:#795334}
+#generation-error-actions{margin-top:22px}
+@keyframes generation-spin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.generation-spinner{animation:none;border-style:dashed}}

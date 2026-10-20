@@ -64,3 +64,7 @@ Under Flashcards → Test yourself, choose Saved notes or Saved flashcards, then
 ## My notes workspace
 
 Folders, saved-note browsing and reading now live together under My notes. Its default view lists folders and notes. Opening a saved note or generating a new study guide opens the detail view inside My notes; Back to saved notes returns to the same folder list. The separate Notes reader navigation item is removed. Switching views preserves folder selection and current notes in memory. Old `#reader` links still open the internal reading view, and the current reading route is `#library/note`. No saved data is moved or deleted by this UI change.
+
+## Generation loading state
+
+Submitting a lecture or slide-deck upload opens the My notes reading view with a prominent loading panel, animated spinner, selected filenames and elapsed time. The save controls are hidden while processing. This is an indeterminate indicator: it does not invent completion percentages or claim which server stage has finished. Successful generation replaces the panel with the study guide. Failure stops the spinner and shows an error and link back to the appropriate upload tool; any previous notes remain available below the error. The elapsed timer stops on success, failure or when another note is opened. Keep the browser tab open while a request is processing.

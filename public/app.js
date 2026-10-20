@@ -1,12 +1,14 @@
+import {setupGeneration} from './generation.js';
 import {setupQuiz} from './quiz.js';
 import {setupDashboard} from './dashboard.js';
 import {setupLibrary} from './library.js';
 import {renderNotes} from './notes.js';
 const form=document.querySelector('#form'), status=document.querySelector('#status'), output=document.querySelector('#notes'), download=document.querySelector('#download'), generate=document.querySelector('#generate');
 const dashboard=setupDashboard();
+const generation=setupGeneration();
 let notes='';
 let libraryUI;
-function show(text){dashboard.navigate('library/note');notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;libraryUI?.newNotes(text);}
+function show(text){generation.hide();dashboard.navigate('library/note');notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;libraryUI?.newNotes(text);}
 document.querySelector('#sample').onclick=()=>{status.textContent='Sample notes — illustrative content, not generated from your files.';show("# Introduction to memory\n\n## Overview\nMemory involves **encoding**, **storing** and **retrieving** information. Effective study supports all three processes.\n\n## Key takeaways\n> - **Working memory is limited:** break complex material into meaningful units.\n> - **Space your practice** across multiple study sessions.\n> - **Test yourself:** retrieval practice helps strengthen learning.\n\n## Main topics\n### Working memory\nWorking memory holds information temporarily while you use it. Group related ideas to reduce the load of a complex task.\n\n### Retention and practice\n- **Spaced practice:** revisit material across separate sessions.\n- **Active retrieval:** try recalling an idea before checking your notes.\n\n## Key terms\n- **Encoding:** converting information into a form that can be stored.\n- **Retrieval:** accessing previously learned information.\n\n## Examples\nAfter a lecture, close your notes and explain **three main ideas** in your own words. Revisit those ideas in a later study session.\n\n## Review questions\n1. What are the three main memory processes?\n2. How could you combine spacing and retrieval in your study routine?\n\n## Uncertainties\nThis is a handcrafted interface sample, with no uploaded source.");};
 const slidesForm=document.querySelector('#slides-form');
 const consolidate=document.querySelector('#consolidate');
@@ -29,6 +31,7 @@ async function createNotes(selectedForm,slidesMode=false) {
     const media=!slidesMode && /\.(mp3|mp4|m4a|wav|webm|mpeg|mpga|mov|mkv)$/i.test(file.name);
     if(file.size>(media?500:24)*1024*1024){status.textContent=media?'Recordings must be 500 MB or smaller.':'Documents must be 24 MB or smaller.';return;}
   }
+  generation.start({slidesMode,files:files.map(file=>file.name)});
   generate.disabled=true;consolidate.disabled=true;document.querySelector('#sample').disabled=true;
   download.hidden=true;output.hidden=true;document.querySelector('#save-note').disabled=true;document.querySelector('#empty').hidden=true;
   status.textContent=slidesMode
@@ -39,7 +42,7 @@ async function createNotes(selectedForm,slidesMode=false) {
     const result=await response.json();if(!response.ok)throw Error(result.error);
     show(result.notes);
     status.textContent=(result.compressedFiles?'Recording compressed successfully. ':'')+(slidesMode?'Consolidated notes ready. Check key points against your slides.':'Notes ready. Check key details against your source material.');
-  }catch(error){status.textContent=error.message;}
+  }catch(error){status.textContent='Note generation failed.';generation.fail(error.message,slidesMode);if(notes){output.hidden=false;download.hidden=false;document.querySelector('#save-form').hidden=false;status.textContent='Generation failed. Your previous notes are shown below.';}}
   finally{generate.disabled=false;consolidate.disabled=false;document.querySelector('#sample').disabled=false;document.querySelector('#save-note').disabled=!notes;}
 }
 form.onsubmit=event=>{event.preventDefault();createNotes(form);};
