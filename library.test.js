@@ -65,10 +65,10 @@ test('main page exposes folder creation and save panel before notes exist',async
 test('flashcards migrate alongside existing notes, persist, move and survive folder deletion',()=>{
  const disk=storage();disk.setItem(LIBRARY_KEY,JSON.stringify({version:1,folders:[],notes:[{id:'old-note',title:'Existing',content:'Keep this',folderId:null}]}));
  const library=new NoteLibrary(disk);assert.deepEqual(library.read().flashcards,[]);
- const folder=library.createFolder('Memory');const id=library.saveFlashcard({question:'What is recall?',answer:'Retrieval of learned information.',folderId:folder});
+ const folder=library.createFolder('Memory','flashcards');const id=library.saveFlashcard({question:'What is recall?',answer:'Retrieval of learned information.',folderId:folder});
  const reloaded=new NoteLibrary(disk);assert.equal(reloaded.read().notes[0].id,'old-note');assert.equal(reloaded.read().flashcards[0].answer,'Retrieval of learned information.');
  reloaded.saveFlashcard({id,question:'Define recall',answer:'Retrieving information',folderId:null});assert.equal(reloaded.read().flashcards.length,1);assert.equal(reloaded.read().flashcards[0].folderId,null);
- reloaded.saveFlashcard({id,question:'Define recall',answer:'Retrieving information',folderId:folder});reloaded.deleteFolder(folder);assert.equal(reloaded.read().flashcards[0].folderId,null);assert.equal(reloaded.read().notes.length,1);
+ reloaded.saveFlashcard({id,question:'Define recall',answer:'Retrieving information',folderId:folder});reloaded.deleteFolder(folder,'flashcards');assert.equal(reloaded.read().flashcards[0].folderId,null);assert.equal(reloaded.read().notes.length,1);
  assert.throws(()=>reloaded.saveFlashcard({question:'',answer:'Text'}),/Enter a question/);
  reloaded.deleteFlashcard(id);assert.equal(reloaded.read().flashcards.length,0);
 });

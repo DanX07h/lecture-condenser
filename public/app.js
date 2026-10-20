@@ -1,3 +1,4 @@
+import {setupQuiz} from './quiz.js';
 import {setupDashboard} from './dashboard.js';
 import {setupLibrary} from './library.js';
 import {renderNotes} from './notes.js';
@@ -46,3 +47,5 @@ slidesForm.onsubmit=event=>{event.preventDefault();createNotes(slidesForm,true);
 download.onclick=()=>{const url=URL.createObjectURL(new Blob([notes],{type:'text/markdown'}));const link=document.createElement('a');link.href=url;link.download='lecture-notes.md';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
 
 libraryUI=setupLibrary({onOpen:show,getCurrent:()=>notes});
+
+setupQuiz();

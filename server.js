@@ -1,3 +1,4 @@
+import {generateQuiz} from './quiz-provider.js';
 import express from 'express';
 import multer from 'multer';
 import {mkdtemp,readFile,rm} from 'node:fs/promises';
@@ -64,5 +65,6 @@ app.post(['/api/notes','/api/slides'],temporaryUploads,acceptUploads,async(req,r
     res.json({notes,compressedFiles});
   }catch(error){next(error);}
 });
+app.post('/api/quiz',express.json({limit:'250kb'}),async(req,res,next)=>{try{res.json({questions:await generateQuiz(req.body?.notes)});}catch(error){next(error);}});
 app.use((error,req,res,_next)=>res.status(error instanceof multer.MulterError?413:error.status || 500).json({error:error instanceof multer.MulterError?(req.path==='/api/slides'?'Upload up to five slide decks, 24 MB each.':'Upload limit exceeded. Maximum: two files, 500 MB each; documents must be 24 MB or smaller.'):error.message || 'Processing failed.'}));
 const server=app.listen(process.env.PORT || 3000,'0.0.0.0',()=>console.log('Lecture Condenser listening on port '+server.address().port));
