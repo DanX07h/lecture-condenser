@@ -1,7 +1,9 @@
+import {setupLibrary} from './library.js';
 import {renderNotes} from './notes.js';
 const form=document.querySelector('#form'), status=document.querySelector('#status'), output=document.querySelector('#notes'), download=document.querySelector('#download'), generate=document.querySelector('#generate');
 let notes='';
-function show(text){notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;}
+let libraryUI;
+function show(text){notes=text;output.innerHTML=renderNotes(text);output.hidden=false;document.querySelector('#empty').hidden=true;download.hidden=false;libraryUI?.newNotes(text);}
 document.querySelector('#sample').onclick=()=>{status.textContent='Sample notes — illustrative content, not generated from your files.';show("# Introduction to memory\n\n## Overview\nMemory involves **encoding**, **storing** and **retrieving** information. Effective study supports all three processes.\n\n## Key takeaways\n> - **Working memory is limited:** break complex material into meaningful units.\n> - **Space your practice** across multiple study sessions.\n> - **Test yourself:** retrieval practice helps strengthen learning.\n\n## Main topics\n### Working memory\nWorking memory holds information temporarily while you use it. Group related ideas to reduce the load of a complex task.\n\n### Retention and practice\n- **Spaced practice:** revisit material across separate sessions.\n- **Active retrieval:** try recalling an idea before checking your notes.\n\n## Key terms\n- **Encoding:** converting information into a form that can be stored.\n- **Retrieval:** accessing previously learned information.\n\n## Examples\nAfter a lecture, close your notes and explain **three main ideas** in your own words. Revisit those ideas in a later study session.\n\n## Review questions\n1. What are the three main memory processes?\n2. How could you combine spacing and retrieval in your study routine?\n\n## Uncertainties\nThis is a handcrafted interface sample, with no uploaded source.");};
 const slidesForm=document.querySelector('#slides-form');
 const consolidate=document.querySelector('#consolidate');
@@ -24,7 +26,7 @@ async function createNotes(selectedForm,slidesMode=false) {
     if(file.size>(media?500:24)*1024*1024){status.textContent=media?'Recordings must be 500 MB or smaller.':'Documents must be 24 MB or smaller.';return;}
   }
   generate.disabled=true;consolidate.disabled=true;document.querySelector('#sample').disabled=true;
-  download.hidden=true;output.hidden=true;document.querySelector('#empty').hidden=true;
+  download.hidden=true;output.hidden=true;document.querySelector('#save-form').hidden=true;document.querySelector('#empty').hidden=true;
   status.textContent=slidesMode
     ? 'Reading your decks and consolidating topics… Keep this page open.'
     : 'Uploading and processing… Videos and large audio files are automatically compressed to speech audio. This may take several minutes. Keep this page open.';
@@ -39,3 +41,5 @@ async function createNotes(selectedForm,slidesMode=false) {
 form.onsubmit=event=>{event.preventDefault();createNotes(form);};
 slidesForm.onsubmit=event=>{event.preventDefault();createNotes(slidesForm,true);};
 download.onclick=()=>{const url=URL.createObjectURL(new Blob([notes],{type:'text/markdown'}));const link=document.createElement('a');link.href=url;link.download='lecture-notes.md';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
+
+libraryUI=setupLibrary({onOpen:show,getCurrent:()=>notes});

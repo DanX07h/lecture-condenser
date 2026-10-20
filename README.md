@@ -38,3 +38,9 @@ Compression reduces file size, not API token or duration limits. Two hours of au
 ## Slides to notes
 
 The dedicated Slides to notes section accepts one to five PPTX or text-based PDF decks (24 MB each). It creates one study guide organised by topic, asks the model to merge repetition and retain unique points, highlights key information, and asks for source/deck citations. Actual PPTX slide numbers are passed to the model; PDF slide numbers are not currently extracted. Image-only decks are rejected when no text is available. Diagrams and speaker notes are not interpreted, and citations/output should be checked against the originals. Export legacy .ppt files as .pptx first. FFmpeg is not needed for this document-only workflow; an AI key and provider quota are still required. Combined text and provider context limits still apply across all decks.
+
+## Topic folders and saved notes
+
+The Your library section stores notes in browser localStorage, grouped into topic folders. Generate notes or open the sample, edit the title and choose a folder above the notes, then click Save to folder. Open a saved note and change its folder, then Update saved note to move it. You can create/rename/delete folders, delete individual notes with confirmation, or write/paste your own Markdown notes. Deleting a folder keeps its notes under Unfiled.
+
+Notes persist only in the same browser profile at the same web origin (scheme, host and port); a different port or browser has a separate library. They are not synced to GitHub or stored with the server. Clearing browser data removes them; download important notes as Markdown for backup. Private browsing and browser storage quotas may prevent saving; the app reports save failures rather than claiming success. An unrecognised or corrupt existing library is preserved rather than overwritten.
