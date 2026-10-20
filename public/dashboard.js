@@ -1,21 +1,27 @@
 export function setupDashboard(){
-  const names={dashboard:'Overview',lectures:'Lecture notes',slides:'Slide decks',reader:'Notes reader',library:'Folders & notes',flashcards:'Flashcards'};
+  const names={dashboard:'Overview',lectures:'Lecture notes',slides:'Slide decks',library:'My notes',flashcards:'Flashcards'};
+  function route(requested){
+    // Keep old reader bookmarks working inside My notes.
+    const detail=requested==='reader'||requested==='library/note';
+    return {view:detail?'library':Object.hasOwn(names,requested)?requested:'dashboard',detail};
+  }
   function render(){
-    const requested=window.location.hash.slice(1);
-    const view=Object.hasOwn(names,requested)?requested:'dashboard';
+    const {view,detail}=route(window.location.hash.slice(1));
     for(const panel of document.querySelectorAll('[data-panel]'))panel.hidden=panel.dataset.panel!==view;
+    document.getElementById('notes-list-view').hidden=detail;
+    document.getElementById('notes-detail-view').hidden=!detail;
     for(const link of document.querySelectorAll('[data-nav]')){
       if(link.dataset.nav===view)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');
     }
     document.getElementById('current-page').textContent=names[view];
-    document.title=`${names[view]} · Lecture Condenser`;
-    document.getElementById('create-flashcard').hidden=view!=='reader';
-    // Keep a single reading workspace and preserve forms and unsaved notes across navigation.
-    const main=document.getElementById('main-content');main.scrollTop=0;
+    document.title=`${detail?'Study notes · ':''}${names[view]} · Lecture Condenser`;
+    document.getElementById('create-flashcard').hidden=view!=='library'||!detail;
+    // Views stay mounted to preserve drafts, folder selection and current notes.
+    document.getElementById('main-content').scrollTop=0;
   }
-  function navigate(view){
-    if(!Object.hasOwn(names,view))view='dashboard';
-    if(window.location.hash==='#'+view)render();else {window.location.hash=view;render();}
+  function navigate(requested){
+    const {view,detail}=route(requested),hash=detail?'library/note':view;
+    if(window.location.hash==='#'+hash)render();else {window.location.hash=hash;render();}
   }
   window.addEventListener('hashchange',render);
   render();
